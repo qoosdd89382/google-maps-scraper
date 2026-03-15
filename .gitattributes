@@ -1,0 +1,22 @@
+# Set default behaviour, in case users don't have core.autocrlf set.
+* text=auto
+
+# Explicitly declare text files you want to always be normalized and converted
+# to LF line endings on checkout. This prevents bash scripts and Dockerfiles 
+# from failing on Windows environments.
+*.go text eol=lf
+*.py text eol=lf
+*.js text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.conf text eol=lf
+Dockerfile* text eol=lf
+
+# Force markdown and text files to be LF
+*.md text eol=lf
+*.txt text eol=lf
+
+# Windows batch files should always be CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
