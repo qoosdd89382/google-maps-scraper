@@ -18,10 +18,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends nodejs python3 python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && npm install -g playwright@1.40.0 \
     && go install github.com/playwright-community/playwright-go/cmd/playwright@latest \
     && mkdir -p /opt/browsers \
-    && playwright install chromium --with-deps
+    && /root/go/bin/playwright install chromium --with-deps
 
 # Build stage
 FROM golang:1.26.1-trixie AS builder
