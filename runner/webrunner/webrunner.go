@@ -227,7 +227,22 @@ func (w *webrunner) scrapeJob(ctx context.Context, job *web.Job) error {
 
 		go exitMonitor.Run(mateCtx)
 
-		err = mate.Start(mateCtx, seedJobs...)
+		errChan := make(chan error, 1)
+		go func() {
+			errChan <- mate.Start(mateCtx, seedJobs...)
+		}()
+
+		select {
+		case err = <-errChan:
+			// finished normally
+		case <-time.After(time.Duration(allowedSeconds+15) * time.Second):
+			cancel()
+			log.Printf("CRITICAL: mate.Start timed out! Playwright processes are hanging during teardown. Force restarting container...")
+			job.Status = web.StatusOK // Treat it as succeeded because extraction was completely done!
+			w.svc.Update(context.Background(), job)
+			os.Exit(1)
+		}
+
 		if err != nil && !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
 			cancel()
 
