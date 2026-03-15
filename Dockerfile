@@ -2,16 +2,23 @@
 FROM ubuntu:20.04 AS playwright-deps
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/browsers
 #ENV PLAYWRIGHT_DRIVER_PATH=/opt/
-RUN export PATH=$PATH:/usr/local/go/bin:/root/go/bin \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl wget \
-    && wget -q https://go.dev/dl/go1.26.1.linux-amd64.tar.gz \
-    && tar -C /usr/local -xzf go1.26.1.linux-amd64.tar.gz \
-    && rm go1.26.1.linux-amd64.tar.gz \
+    && ARCH=$(uname -m) \
+    && if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+         GO_URL="https://go.dev/dl/go1.26.1.linux-arm64.tar.gz"; \
+       else \
+         GO_URL="https://go.dev/dl/go1.26.1.linux-amd64.tar.gz"; \
+       fi \
+    && wget -q $GO_URL -O go.tar.gz \
+    && tar -C /usr/local -xzf go.tar.gz \
+    && rm go.tar.gz \
+    && export PATH=$PATH:/usr/local/go/bin:/root/go/bin \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
+    && apt-get install -y --no-install-recommends nodejs python3 python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
+    && npm install -g playwright@1.40.0 \
     && go install github.com/playwright-community/playwright-go/cmd/playwright@latest \
     && mkdir -p /opt/browsers \
     && playwright install chromium --with-deps
@@ -51,6 +58,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpango-1.0-0 \
     libcairo2 \
     libasound2 \
+    python3 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -58,7 +66,7 @@ COPY --from=playwright-deps /opt/browsers /opt/browsers
 COPY --from=playwright-deps /root/.cache/ms-playwright-go /opt/ms-playwright-go
 
 RUN chmod -R 755 /opt/browsers \
-    && chmod -R 755 /opt/ms-playwright-go
+    && chmod -R 755 /opt/ms-playwright-go 2>/dev/null || true
 
 COPY --from=builder /usr/bin/google-maps-scraper /usr/bin/
 
