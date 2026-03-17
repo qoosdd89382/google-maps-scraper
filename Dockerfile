@@ -18,7 +18,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends nodejs python3 python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && go install github.com/playwright-community/playwright-go/cmd/playwright@latest \
+    && go install github.com/playwright-community/playwright-go/cmd/playwright@v0.5700.1 \
     && mkdir -p /opt/browsers \
     && /root/go/bin/playwright install chromium --with-deps
 

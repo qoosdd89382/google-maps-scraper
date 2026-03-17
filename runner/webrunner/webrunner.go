@@ -124,6 +124,13 @@ func (w *webrunner) work(ctx context.Context) error {
 
 						log.Printf("job %s scraped successfully", jobs[i].ID)
 					}
+
+					// Deep-crawl mode is intentionally short-lived: restart after each
+					// completed job to avoid long-lived Playwright state accumulation.
+					if w.cfg.ExtraReviews {
+						log.Printf("depth mode: restarting process after job %s for clean next task", jobs[i].ID)
+						os.Exit(1)
+					}
 				}
 			}
 		}
